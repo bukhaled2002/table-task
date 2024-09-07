@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import customFetch from "../utils/customFetch";
 import { useDispatch } from "react-redux";
 import { addElement } from "../features/tableSlice";
+import { toast } from "react-toastify";
 
 function AddPopup({ setIsOpenPopup }) {
   const [item, setItem] = useState({ name: "", model: "", color: "", code: 0 });
@@ -10,7 +11,11 @@ function AddPopup({ setIsOpenPopup }) {
     e.preventDefault();
     const response = await customFetch.post("/table", item);
     console.log(response.data.item);
-    dispatch(addElement({ item: response.data.item }));
+    dispatch(addElement(response.data.item));
+    toast.success("item added successfully", {
+      position: "top-center",
+      autoClose: 3000,
+    });
     setIsOpenPopup(false);
   };
   return (

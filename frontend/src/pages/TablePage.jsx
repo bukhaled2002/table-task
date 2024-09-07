@@ -9,7 +9,9 @@ import {
 import Pagination from "../components/Pagination";
 import { useLoaderData } from "react-router";
 import { useDispatch, useSelector } from "react-redux";
-import { useEffect } from "react";
+import { toast } from "react-toastify";
+import { useState } from "react";
+
 export const loader =
   (store) =>
   async ({ request }) => {
@@ -19,44 +21,52 @@ export const loader =
 
     const response = await customFetch.get(`/table/?page=${params["page"]}`);
     const { currentPage, items } = response.data.data;
-    store.dispatch(setInitalState({ page: currentPage, items: items }));
+    store.dispatch(setInitalState(items));
     return response.data.data;
   };
 function TablePage() {
+  const [loading, setLoading] = useState(false);
   const dispatch = useDispatch();
   const editedElements = useSelector((state) => state.table.editedElements);
   const handlaSubmitButton = async (e) => {
     e.preventDefault();
+    setLoading(true);
     const objectToSend = Object.entries(editedElements).map(([id, item]) => ({
       id,
       item,
     }));
-    const response = await customFetch.patch(
-      "/table",
-      JSON.stringify(objectToSend)
-    );
+
+    if (objectToSend.length === 0) {
+      toast.error("no edits occured", {
+        position: "top-center",
+        autoClose: 3000,
+      });
+      setLoading(false);
+      return;
+    }
+
+    await customFetch.patch("/table", JSON.stringify(objectToSend));
+    toast.success("items edited successfully", {
+      position: "top-center",
+      autoClose: 3000,
+    });
     dispatch(resetToDefault());
+    setLoading(false);
   };
-  useEffect(() => {
-    console.log(editedElements);
-  }, [editedElements]);
   return (
     <div className="m-auto mt-10 flex flex-col  w-full px-5 max-w-screen-sm lg:max-w-screen-md gap-2">
       <Header />
       <Table />
       <Pagination />
       <button
-        className="bg-green-600 w-[100px] self-end p-2"
+        className={`bg-yellow-400 w-[100px] self-end p-2 capitalize rounded-md ${
+          loading ? "cursor-wait" : "cursor-pointer"
+        }`}
         onClick={handlaSubmitButton}
+        disabled={loading}
       >
-        submit
+        {loading ? "submitting..." : "submit"}
       </button>
-      {/* <button
-        className="bg-zinc-500 w-[100px] self-end p-2"
-        onClick={() => dispatch(resetToDefault())}
-      >
-        reset
-      </button> */}
     </div>
   );
 }

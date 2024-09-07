@@ -6,20 +6,22 @@ const tableSlice = createSlice({
   initialState,
   reducers: {
     setInitalState: (state, aciton) => {
-      state.table[aciton.payload.page] = [...aciton.payload.items];
+      aciton.payload.forEach((obj) => {
+        state.table[obj.id] = { ...obj };
+      });
     },
     editElement: (state, action) => {
-      const { id, field, value } = action.payload; // Destructure the payload
+      const { id, field, value } = action.payload;
       if (!state.editedElements[id]) {
         state.editedElements[id] = {};
       }
-      state.editedElements[id][field] = value; // Update the specific field
+      state.editedElements[id][field] = value;
     },
     resetToDefault: (state) => {
       state.editedElements = {};
     },
     addElement: (state, action) => {
-      state.table[1] = [action.payload.item, ...state.table[1]];
+      state.table[action.payload.id] = { ...action.payload };
     },
     deleteElement: (state, action) => {},
   },

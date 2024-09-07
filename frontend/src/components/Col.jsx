@@ -1,57 +1,47 @@
-import { useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
 import { editElement } from "../features/tableSlice";
+import { useDispatch, useSelector } from "react-redux";
 
-function Col({ item: p }) {
-  const [item, setItem] = useState(p);
+function Col({ header, paginatedData }) {
   const dispatch = useDispatch();
 
   const handleBlur = (field, value, id) => {
-    // Dispatch the editElement action with the specific field and value
     dispatch(editElement({ id, field, value }));
   };
 
-  const handleKeyDown = (event, field) => {
-    if (event.key === "Enter") {
-      event.preventDefault();
-      handleBlur(field, event.target.value, item.id);
-      event.target.blur();
-    }
-  };
   const editedElements = useSelector((state) => state.table.editedElements);
-  console.log(item);
+
   return (
-    <div key={item.id} className="flex flex-col flex-1">
-      <p className="p-1 capitalize border">{item.name}</p>
-      <input
-        className={`p-1 capitalize border w-full ${
-          editedElements[item.id]?.model ? "bg-red-300" : "bg-yellow-300"
-        }`}
-        defaultValue={editedElements[item.id]?.model || item.model}
-        // onChange={(e) => setItem({ ...item, model: e.target.value })}
-        onChange={(e) => handleBlur("model", e.target.value, item.id)}
-        // onKeyDown={(e) => handleKeyDown(e, "model")}
-      />
-      <input
-        className={`p-1 capitalize border w-full ${
-          editedElements[item.id]?.color ? "bg-red-300" : "bg-yellow-300"
-        }`}
-        defaultValue={editedElements[item.id]?.color || item.color}
-        // onChange={(e) => setItem({ ...item, color: e.target.value })}
-        onChange={(e) => handleBlur("color", e.target.value, item.id)}
-        // onKeyDown={(e) => handleKeyDown(e, "color")}
-      />
-      <input
-        type="number"
-        className={`p-1 capitalize border w-full ${
-          editedElements[item.id]?.code ? "bg-red-300" : "bg-yellow-300"
-        }`}
-        // onChange={(e) => setItem({ ...item, code: e.target.value })}
-        defaultValue={+editedElements[item.id]?.code || +item.code}
-        onChange={(e) => handleBlur("code", +e.target.value, item.id)}
-        // onKeyDown={(e) => handleKeyDown(e, "code")}
-      />
-    </div>
+    <>
+      {header.map((key) => (
+        <tr key={key} className="border-b">
+          <td className="px-4 py-2 font-medium text-gray-700">{key}</td>
+          {paginatedData.map((item) => {
+            return (
+              <td key={item.id} className="px-4 py-2 text-gray-600">
+                <input
+                  type={key === "code" ? "number" : "text"}
+                  className={`p-1 capitalize  w-full ${
+                    editedElements[item.id]?.[key] ? "bg-red-300" : ""
+                  }`}
+                  defaultValue={
+                    key === "code"
+                      ? +editedElements[item.id]?.[key] || +item[key]
+                      : editedElements[item.id]?.[key] || item[key]
+                  }
+                  onChange={(e) =>
+                    handleBlur(
+                      key,
+                      key === "code" ? +e.target.value : e.target.value,
+                      item.id
+                    )
+                  }
+                />
+              </td>
+            );
+          })}
+        </tr>
+      ))}
+    </>
   );
 }
 
