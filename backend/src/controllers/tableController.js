@@ -33,6 +33,7 @@ export const getItems = async (req, res) => {
   const pageSize = +req.query.pageSize || 4;
   try {
     const items = await prisma.table.findMany({
+      orderBy: [{ createdAt: "desc" }],
       skip: (page - 1) * pageSize,
       take: pageSize,
     });
@@ -58,8 +59,9 @@ export const editAll = async (req, res) => {
     const updates = req.body;
 
     const updatePromises = updates.map(async (update) => {
-      const { id, name: _, ...rest } = update;
-      console.log(rest);
+      const { id, item } = update;
+      const { name: _, ...rest } = item;
+
       return await prisma.table.update({
         where: { id },
         data: rest,
@@ -74,5 +76,23 @@ export const editAll = async (req, res) => {
   } catch (error) {
     console.error(error); // Log the error for better debugging
     res.status(500).json({ message: "Error updating items" });
+  }
+};
+export const deleteAll = async (req, res) => {
+  try {
+    const itemsToDelete = req.body;
+
+    const updatePromises = itemsToDelete.map(async (itemId) => {
+      return await prisma.table.deleteMany({
+        where: { id: itemId },
+      });
+    });
+
+    await Promise.all(updatePromises);
+
+    res.status(200).json({ message: "Items deleted successfully" });
+  } catch (error) {
+    console.error(error); // Log the error for better debugging
+    res.status(500).json({ message: "Error deleting items" });
   }
 };
